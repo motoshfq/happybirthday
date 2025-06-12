@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Birthday Countdown</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #3d6cb9 100%);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        /* Animated background with particles */
+        .background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 60% 30%, rgba(255, 255, 255, 0.06) 0%, transparent 50%);
+            animation: backgroundFloat 20s ease-in-out infinite;
+        }
+        
+        @keyframes backgroundFloat {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(1deg); }
+        }
+        
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: particleFloat 15s linear infinite;
+        }
+        
+        .particle:nth-child(odd) {
+            animation-delay: -5s;
+            background: rgba(255, 255, 255, 0.4);
+        }
+        
+        .particle:nth-child(even) {
+            animation-delay: -10s;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 60px 50px;
+            text-align: center;
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            max-width: 700px;
+            width: 100%;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .container:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
+        }
+        
+        .title {
+            font-size: clamp(2.5rem, 5vw, 3.5rem);
+            font-weight: 300;
+            color: #2d3748;
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+        
+        .date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(1rem, 2vw, 1.2rem);
+            color: #718096;
+            margin-bottom: 50px;
+            font-weight: 400;
+        }
+        
+        .countdown {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .time-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 25px 15px;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.5);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .time-unit:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-3px);
+        }
+        
+        /* Flip effect for numbers */
+        .time-number-container {
+            position: relative;
+            width: 80px;
+            height: 60px;
+            margin-bottom: 8px;
+            perspective: 200px;
+        }
+        
+        .time-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(2rem, 4vw, 2.5rem);
+            font-weight: 600;
+            color: #2d3748;
+            line-height: 1;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backface-visibility: hidden;
+            transition: transform 0.6s ease;
+        }
+        
+        .time-number.current {
+            transform: rotateX(0deg);
+        }
+        
+        .time-number.next {
+            transform: rotateX(-90deg);
+        }
+        
+        .time-number.flipping .current {
+            transform: rotateX(90deg);
+        }
+        
+        .time-number.flipping .next {
+            transform: rotateX(0deg);
+        }
+        
+        /* Flip animation */
+        .flip-animation {
+            animation: flipNumber 0.6s ease-in-out;
+        }
+        
+        @keyframes flipNumber {
+            0% {
+                transform: rotateX(0deg);
+            }
+            50% {
+                transform: rotateX(-90deg);
+            }
+            100% {
+                transform: rotateX(0deg);
+            }
+        }
+        
+        .time-label {
+            font-size: clamp(0.8rem, 1.5vw, 0.9rem);
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        
+        .message {
+            font-size: clamp(1rem, 2vw, 1.1rem);
+            color: #4a5568;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+        
+        .birthday-message {
+            display: none;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .birthday-message.show {
+            display: block;
+        }
+        
+        .birthday-title {
+            font-size: clamp(3rem, 6vw, 4rem);
+            font-weight: 300;
+            color: #2d3748;
+            margin-bottom: 20px;
+            letter-spacing: -1px;
+        }
+        
+        .birthday-text {
+            font-size: clamp(1.2rem, 2.5vw, 1.4rem);
+            color: #4a5568;
+            line-height: 1.6;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Hover effects */
+        .time-unit:hover .time-number {
+            color: #3d6cb9;
+        }
+        
+        .time-unit:hover .time-label {
+            color: #3d6cb9;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 40px 30px;
+            }
+            
+            .countdown {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+            
+            .time-number-container {
+                width: 60px;
+                height: 50px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 30px 20px;
+            }
+            
+            .countdown {
+                gap: 15px;
+            }
+            
+            .time-unit {
+                padding: 20px 10px;
+            }
+            
+            .time-number-container {
+                width: 50px;
+                height: 45px;
+            }
+        }
+        
+        /* Subtle glow effect */
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #3d6cb9, #2a5298, #1e3c72);
+            border-radius: 26px;
+            z-index: -1;
+            opacity: 0.3;
+            animation: glowPulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background"></div>
+    <div class="particles"></div>
+    
+    <div class="container">
+        <div id="countdown-container">
+            <h1 class="title">День рождения</h1>
+            <p class="date">13.06.2026</p>
+            
+            <div class="countdown">
+                <div class="time-unit">
+                    <div class="time-number-container">
+                        <div class="time-number current" id="days">000</div>
+                    </div>
+                    <span class="time-label">дней</span>
+                </div>
+                <div class="time-unit">
+                    <div class="time-number-container">
+                        <div class="time-number current" id="hours">00</div>
+                    </div>
+                    <span class="time-label">часов</span>
+                </div>
+                <div class="time-unit">
+                    <div class="time-number-container">
+                        <div class="time-number current" id="minutes">00</div>
+                    </div>
+                    <span class="time-label">минут</span>
+                </div>
+                <div class="time-unit">
+                    <div class="time-number-container">
+                        <div class="time-number current" id="seconds">00</div>
+                    </div>
+                    <span class="time-label">секунд</span>
+                </div>
+            </div>
+            
+            <p class="message">До особенного дня остается</p>
+        </div>
+        
+        <div class="birthday-message" id="birthday-message">
+            <h1 class="birthday-title">С днём рождения!</h1>
+            <p class="birthday-text">Сегодня ваш особенный день.<br>Пусть он принесет радость и счастье!</p>
+        </div>
+    </div>
+
+    <script>
+        // Store previous values for flip animation
+        let previousValues = {
+            days: '000',
+            hours: '00',
+            minutes: '00',
+            seconds: '00'
+        };
+        
+        function createParticles() {
+            const particlesContainer = document.querySelector('.particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        function flipNumber(elementId, newValue) {
+            const element = document.getElementById(elementId);
+            const currentValue = element.textContent;
+            
+            if (currentValue !== newValue) {
+                // Add flip animation class
+                element.classList.add('flip-animation');
+                
+                // Change number in the middle of animation
+                setTimeout(() => {
+                    element.textContent = newValue;
+                }, 300);
+                
+                // Remove animation class after completion
+                setTimeout(() => {
+                    element.classList.remove('flip-animation');
+                }, 600);
+            }
+        }
+        
+        function updateCountdown() {
+            const targetDate = new Date('2026-06-13T00:00:00').getTime();
+            const now = new Date().getTime();
+            const timeDifference = targetDate - now;
+            
+            if (timeDifference <= 0) {
+                document.getElementById('countdown-container').style.display = 'none';
+                document.getElementById('birthday-message').classList.add('show');
+                return;
+            }
+            
+            const days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((timeDifference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeDifference % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeDifference % (1000 * 60)) / 1000);
+            
+            const newValues = {
+                days: days.toString().padStart(3, '0'),
+                hours: hours.toString().padStart(2, '0'),
+                minutes: minutes.toString().padStart(2, '0'),
+                seconds: seconds.toString().padStart(2, '0')
+            };
+            
+            // Apply flip animation for each changed value
+            Object.keys(newValues).forEach(key => {
+                if (previousValues[key] !== newValues[key]) {
+                    flipNumber(key, newValues[key]);
+                }
+            });
+            
+            // Update previous values
+            previousValues = { ...newValues };
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
+        
+        // Add some interactive particle effects on click
+        document.addEventListener('click', function(e) {
+            const particle = document.createElement('div');
+            particle.style.position = 'fixed';
+            particle.style.left = e.clientX + 'px';
+            particle.style.top = e.clientY + 'px';
+            particle.style.width = '6px';
+            particle.style.height = '6px';
+            particle.style.background = 'rgba(255, 255, 255, 0.8)';
+            particle.style.borderRadius = '50%';
+            particle.style.pointerEvents = 'none';
+            particle.style.zIndex = '1000';
+            particle.style.animation = 'clickParticle 1s ease-out forwards';
+            
+            document.body.appendChild(particle);
+            
+            setTimeout(() => {
+                particle.remove();
+            }, 1000);
+        });
+        
+        // Add click particle animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes clickParticle {
+                0% {
+                    transform: scale(0) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(3) rotate(180deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
